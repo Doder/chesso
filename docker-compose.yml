@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  app:
+  api:
     container_name: chesso-backend
     build:
       context: .
@@ -33,7 +33,16 @@ services:
     volumes:
       - .:/app
     command: ["go", "run", "main.go"]
-
+    
+  nginx:
+      image: nginx:alpine
+      container_name: nginx
+      ports:
+        - "80:80"
+      volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      depends_on:
+        - app 
 volumes:
   postgres_data:
 
