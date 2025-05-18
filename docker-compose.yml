@@ -42,7 +42,7 @@ services:
       volumes:
         - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       depends_on:
-        - app 
+        - api 
 volumes:
   postgres_data:
 
