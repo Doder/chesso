@@ -1,6 +1,12 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"strings"
+	"crypto/sha256"
+	"encoding/hex"
+	"github.com/Doder/chesso/utils"
+)
 
 type Position struct {
 	gorm.Model	
@@ -12,4 +18,10 @@ type Position struct {
 	OpeningID uint `gorm:"not null" json:"opening_id"` 	
 
 	Opening Opening `gorm:"foreignKey:OpeningID json:"-"`
+}
+
+func (p *Position) BeforeSave(tx *gorm.DB) (err error) {
+    normalized := utils.NormalizeFEN(p.FEN)
+    p.HashedFEN = utils.HashFEN(normalized)
+    return nil
 }
