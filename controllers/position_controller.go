@@ -2,9 +2,6 @@ package controllers
 
 import (
     "net/http"
-    "strings"
-    "crypto/sha256"
-    "encoding/hex"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -86,7 +83,7 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        hashedFen := hashFen(fen) // Implement this function to hash FEN consistently
+        hashedFen := utils.HashFEN(fen) // Implement this function to hash FEN consistently
 
         var positionsWithSameFen []models.Position
         // Step 1: Find all positions with the same hashedFen, preload Opening

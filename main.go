@@ -14,7 +14,7 @@ func main() {
 	db.DB.AutoMigrate(&models.User{})
 
 	routes.RegisterUserRoutes(router)
-	routes.RegisterRepertoirRoutes(router)
+	routes.RegisterRepertoirRoutes(router, db.DB)
 	router.Run(":8080")
 }
 

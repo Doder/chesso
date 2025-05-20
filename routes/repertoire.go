@@ -27,4 +27,4 @@ func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
 				positions.DELETE("/:id", controllers.DeletePosition(db))
 				positions.GET("/search-candidate", controllers.SearchCandidatePositions(db)) // ?fen=xxx}
 		}
-
+}

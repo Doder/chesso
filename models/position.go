@@ -2,9 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"strings"
-	"crypto/sha256"
-	"encoding/hex"
 	"github.com/Doder/chesso/utils"
 )
 
