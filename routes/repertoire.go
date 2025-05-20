@@ -6,7 +6,7 @@ import (
     "github.com/Doder/chesso/controllers"
 )
 
-func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
+func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
 		rep := router.Group("/repertoires")
     {
         rep.POST("/", controllers.CreateRepertoire(db))

@@ -6,9 +6,9 @@ services:
     container_name: chesso-db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres 
-      POSTGRES_DB: chesso
+      POSTGRES_USER: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_USER} 
+      POSTGRES_DB: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -21,13 +21,8 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - db
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres 
-      DB_NAME: chesso
-      JWT_SECRET: secret777
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     volumes:
