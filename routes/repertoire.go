@@ -4,10 +4,12 @@ import (
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
     "github.com/Doder/chesso/controllers"
+		"github.com/Doder/chesso/middleware"
 )
 
 func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
 		rep := router.Group("/repertoires")
+		rep.Use(middleware.AuthMiddleware())
     {
         rep.POST("/", controllers.CreateRepertoire(db))
         rep.GET("/", controllers.ListRepertoires(db))
@@ -15,12 +17,14 @@ func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
         rep.DELETE("/:id", controllers.DeleteRepertoire(db))
     }
 		openings := router.Group("/openings")
+		openings.Use(middleware.AuthMiddleware())
     {
         openings.GET("/", controllers.ListOpenings(db))
         openings.GET("/:id", controllers.GetOpening(db))
         openings.DELETE("/:id", controllers.DeleteOpening(db))
     }
     positions := router.Group("/positions")
+		positions.Use(middleware.AuthMiddleware())
     {
         positions.POST("/", controllers.CreatePosition(db))
         positions.GET("/search", controllers.FindPositionsByFEN(db))

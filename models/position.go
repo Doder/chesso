@@ -9,12 +9,12 @@ type Position struct {
 	gorm.Model	
 
 	FEN string `gorm:"not null" json:"fen"`
-	HashedFEN string `gorm:"index;not null" json:"hashed_fen` 
+	HashedFEN string `gorm:"not null" json:"hashed_fen` 
 	LastMove string `json: "last_move"`
 	MoveNumber uint `gorm:"not null" json:"move_number"` 
 	OpeningID uint `gorm:"not null" json:"opening_id"` 	
 
-	Opening Opening `gorm:"foreignKey:OpeningID json:"-"`
+	Opening Opening `gorm:"foreignKey:OpeningID" json:"-"`
 }
 
 func (p *Position) BeforeSave(tx *gorm.DB) (err error) {

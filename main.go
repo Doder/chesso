@@ -11,7 +11,7 @@ func main() {
 	router := gin.Default()
 
 	db.Connect()
-	db.DB.AutoMigrate(&models.User{})
+	db.DB.AutoMigrate(&models.User{}, &models.Repertoire{}, &models.Opening{}, &models.Position{})
 
 	routes.RegisterUserRoutes(router)
 	routes.RegisterRepertoirRoutes(router, db.DB)
