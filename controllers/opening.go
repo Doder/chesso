@@ -7,7 +7,22 @@ import (
     "github.com/Doder/chesso/models"
 )
 
-// List all openings
+func CreateOpening(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var input models.Opening
+        if err := c.ShouldBindJSON(&input); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
+        if err := db.Create(&input).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+
+        c.JSON(http.StatusCreated, input)
+    }
+}
+
 func ListOpenings(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var openings []models.Opening
@@ -19,7 +34,6 @@ func ListOpenings(db *gorm.DB) gin.HandlerFunc {
     }
 }
 
-// Get single opening by id
 func GetOpening(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         id := c.Param("id")
@@ -33,7 +47,6 @@ func GetOpening(db *gorm.DB) gin.HandlerFunc {
     }
 }
 
-// Delete opening by id
 func DeleteOpening(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         id := c.Param("id")

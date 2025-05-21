@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	  "fmt"
     "net/http"
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -18,7 +17,6 @@ func CreateRepertoire(db *gorm.DB) gin.HandlerFunc {
 				userIDValue,_ := c.Get("userID")
 				userIDFloat := userIDValue.(float64)
         input.UserID = uint(userIDFloat)
-				fmt.Printf("%+v\n", input)
         if err := db.Create(&input).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return

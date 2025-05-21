@@ -19,6 +19,7 @@ func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
 		openings := router.Group("/openings")
 		openings.Use(middleware.AuthMiddleware())
     {
+			  openings.POST("/", controllers.CreateOpening(db))
         openings.GET("/", controllers.ListOpenings(db))
         openings.GET("/:id", controllers.GetOpening(db))
         openings.DELETE("/:id", controllers.DeleteOpening(db))
