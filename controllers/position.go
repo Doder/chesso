@@ -2,6 +2,8 @@ package controllers
 
 import (
     "net/http"
+		"strings"
+		"strconv"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -11,8 +13,8 @@ import (
 
 type PositionInput struct {
     FEN        string `json:"fen" binding:"required"`
-    MoveNumber int    `json:"move_number"`
-    OpeningID  uint   `json:"opening_id"`
+		LastMove   string `json:"last_move"`
+		OpeningID  uint   `json:"opening_id" binding:"required"`
 }
 
 // POST /positions
@@ -23,10 +25,20 @@ func CreatePosition(db *gorm.DB) gin.HandlerFunc {
             c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
             return
         }
-
+				ss := strings.Split(input.FEN, " ")
+				side := ss[1]
+				moveNumber, err := strconv.Atoi(ss[len(ss)-1])
+				moveNumber *= 2 //count halfmoves
+				if side == "w" {
+					moveNumber--
+				}
+				if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				}
         position := models.Position{
             FEN:        input.FEN,
-            MoveNumber: uint(input.MoveNumber),
+            MoveNumber: uint(moveNumber),
+						LastMove: input.LastMove,
             OpeningID:  input.OpeningID,
             HashedFEN:  utils.HashFEN(input.FEN),
         }
@@ -49,7 +61,7 @@ func FindPositionsByFEN(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        hashed := utils.HashFEN(fen)
+        hashed := utils.NormalizeHashFEN(fen)
 
         var positions []models.Position
         if err := db.Preload("Opening").Where("hashed_fen = ?", hashed).Find(&positions).Error; err != nil {
@@ -83,7 +95,7 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        hashedFen := utils.HashFEN(fen) // Implement this function to hash FEN consistently
+        hashedFen := utils.NormalizeHashFEN(fen) // Implement this function to hash FEN consistently
 
         var positionsWithSameFen []models.Position
         // Step 1: Find all positions with the same hashedFen, preload Opening
@@ -95,7 +107,7 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
         }
 
         if len(positionsWithSameFen) == 0 {
-            c.JSON(http.StatusOK, gin.H{"message": "No matching positions found"})
+            c.JSON(http.StatusOK, []interface{}{})
             return
         }
 
@@ -128,6 +140,10 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
+			  
+				for i := range candidatePositions {
+					candidatePositions[i].OpeningName = candidatePositions[i].Opening.Name
+				}
 
         c.JSON(http.StatusOK, candidatePositions)
     }

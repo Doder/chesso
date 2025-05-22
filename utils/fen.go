@@ -18,3 +18,8 @@ func HashFEN(normalizedFEN string) string {
     hash := sha256.Sum256([]byte(normalizedFEN))
     return hex.EncodeToString(hash[:])
 }
+
+func NormalizeHashFEN(fen string) string {
+		nf := NormalizeFEN(fen)
+		return HashFEN(nf)
+}
