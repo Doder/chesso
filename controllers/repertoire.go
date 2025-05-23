@@ -7,6 +7,12 @@ import (
     "github.com/Doder/chesso/models"
 )
 
+type RepertoireWithOpenings struct {
+	gorm.Model
+	Name string `json:"name"`
+	Openings []models.Opening `gorm:"foreignKey:RepertoireID" json:"openings"`
+}
+
 func CreateRepertoire(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var input models.Repertoire
@@ -40,10 +46,10 @@ func ListRepertoires(db *gorm.DB) gin.HandlerFunc {
 
 func GetRepertoire(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
-        var rep models.Repertoire
+        var rep RepertoireWithOpenings
         id := c.Param("id")
-
-        if err := db.First(&rep, id).Error; err != nil {
+				
+        if err := db.Model(&models.Repertoire{}).Where("id=?", id).Preload("Openings").First(&rep).Error; err != nil {
             c.JSON(http.StatusNotFound, gin.H{"error": "Repertoire not found"})
             return
         }
