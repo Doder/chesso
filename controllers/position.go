@@ -29,7 +29,7 @@ func CreateOrUpdatePosition(db *gorm.DB) gin.HandlerFunc {
 
 				var prevPos models.Position
 				fromFENHashed := utils.NormalizeHashFEN(input.FromFEN)
-				if err := db.Where("hashed_fen = ?", fromFENHashed).First(&prevPos).Error; err != nil {
+				if err := db.Joins("JOIN openings ON openings.id = positions.opening_id").Where("hashed_fen = ? AND openings.repertoire_id = ?", fromFENHashed, input.RepertoireID).First(&prevPos).Error; err != nil {
 					c.JSON(http.StatusNotFound, gin.H{"error": "Related position not found"})
 					return
 				}
