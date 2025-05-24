@@ -9,13 +9,14 @@ type Position struct {
 	gorm.Model	
 
 	FEN string `gorm:"not null" json:"fen"`
-	HashedFEN string `gorm:"not null;unique" json:"hashed_fen"` 
+	HashedFEN string `gorm:"not null;uniqueIndex:idx-fen-opening" json:"hashed_fen"` 
 	LastMove string `json:"last_move"`
-	MoveNumber uint `gorm:"not null" json:"move_number"` 
-	OpeningID uint `gorm:"not null" json:"opening_id"` 	
+	OpeningID uint `gorm:"not null;uniqueIndex:idx-fen-opening" json:"opening_id"` 	
 
 	OpeningName string `json:"opening_name" gorm:"-"`
 	Opening Opening `gorm:"foreignKey:OpeningID" json:"-"`
+	PrevPositions []*Position `gorm:"many2many:position_prevposition;joinForeignKey:PositionID;joinReferences:PrevPositionID"`
+	NextPositions []*Position `gorm:"many2many:position_prevposition;joinForeignKey:PrevPositionID;joinReferences:PositionID"`
 }
 
 func (p *Position) BeforeSave(tx *gorm.DB) (err error) {

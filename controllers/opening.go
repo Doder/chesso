@@ -5,6 +5,7 @@ import (
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
     "github.com/Doder/chesso/models"
+    "github.com/Doder/chesso/utils"
 )
 
 func CreateOpening(db *gorm.DB) gin.HandlerFunc {
@@ -15,6 +16,19 @@ func CreateOpening(db *gorm.DB) gin.HandlerFunc {
             return
         }
         if err := db.Create(&input).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+			  //create also first position
+				fpFEN := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+				fpFENHashed := utils.NormalizeHashFEN(fpFEN)
+				firstPosition := models.Position{
+					FEN: fpFEN,
+					HashedFEN: fpFENHashed,
+					OpeningID: input.ID,
+				}
+
+        if err := db.Create(&firstPosition).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }

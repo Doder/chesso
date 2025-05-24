@@ -2,8 +2,7 @@ package controllers
 
 import (
     "net/http"
-		"strings"
-		"strconv"
+		"errors"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -12,41 +11,56 @@ import (
 )
 
 type PositionInput struct {
-    FEN        string `json:"fen" binding:"required"`
-		LastMove   string `json:"last_move"`
+		FromFEN    string `json:"from_fen" binding:"required"`
+		ToFEN      string `json:"to_fen" binding:"required"`
+		LastMove   string `json:"last_move" binding:"required"`
 		OpeningID  uint   `json:"opening_id" binding:"required"`
+		RepertoireID uint `json:"repertoire_id" binding:"required"`
 }
 
 // POST /positions
-func CreatePosition(db *gorm.DB) gin.HandlerFunc {
+func CreateOrUpdatePosition(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var input PositionInput
         if err := c.ShouldBindJSON(&input); err != nil {
             c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
             return
         }
-				ss := strings.Split(input.FEN, " ")
-				side := ss[1]
-				moveNumber, err := strconv.Atoi(ss[len(ss)-1])
-				moveNumber *= 2 //count halfmoves
-				if side == "w" {
-					moveNumber--
-				}
-				if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				}
-        position := models.Position{
-            FEN:        input.FEN,
-            MoveNumber: uint(moveNumber),
-						LastMove: input.LastMove,
-            OpeningID:  input.OpeningID,
-            HashedFEN:  utils.HashFEN(input.FEN),
-        }
 
-        if err := db.Create(&position).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
-        }
+				var prevPos models.Position
+				fromFENHashed := utils.NormalizeHashFEN(input.FromFEN)
+				if err := db.Where("hashed_fen = ?", fromFENHashed).First(&prevPos).Error; err != nil {
+					c.JSON(http.StatusNotFound, gin.H{"error": "Related position not found"})
+					return
+				}
+				hashedFEN := utils.HashFEN(input.ToFEN)
+				var pos models.Position 
+				var position models.Position
+				if err := db.
+    Joins("JOIN openings ON openings.id = positions.opening_id").
+		Where("positions.hashed_fen = ? AND openings.repertoire_id = ?", hashedFEN, input.RepertoireID).
+    Preload("Opening.Repertoire").
+    First(&pos).Error; err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						position = models.Position{
+								FEN:        input.ToFEN,
+								LastMove: input.LastMove,
+								OpeningID:  input.OpeningID,
+								HashedFEN:  hashedFEN,
+						}
+						if err := db.Create(&position).Error; err != nil {
+								c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+								return
+						}
+					} else {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+						return
+					}
+				}
+				if err := db.Model(&prevPos).Association("NextPositions").Append(&position); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
 
         c.JSON(http.StatusOK, position)
     }
@@ -89,6 +103,7 @@ func DeletePosition(db *gorm.DB) gin.HandlerFunc {
 // SearchCandidatePositions finds candidate positions based on fen
 func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
+			  rep_id := c.Query("repertoire_id")
         fen := c.Query("fen")
         if fen == "" {
             c.JSON(http.StatusBadRequest, gin.H{"error": "fen query param required"})
@@ -97,53 +112,25 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
 
         hashedFen := utils.NormalizeHashFEN(fen) // Implement this function to hash FEN consistently
 
-        var positionsWithSameFen []models.Position
-        // Step 1: Find all positions with the same hashedFen, preload Opening
-        if err := db.Preload("Opening").
-            Where("hashed_fen = ?", hashedFen).
-            Find(&positionsWithSameFen).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
+        var positionWithSameFen models.Position
+        if err := db.
+    Joins("JOIN openings ON openings.id = positions.opening_id").
+    Where("positions.hashed_fen = ? AND openings.repertoire_id = ?", hashedFen, rep_id).
+    Preload("Opening.Repertoire").
+		Preload("NextPositions").
+    First(&positionWithSameFen).Error; err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+						return
+					}
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+							return
         }
-
-        if len(positionsWithSameFen) == 0 {
+				candidatePositions := positionWithSameFen.NextPositions 
+        if len(candidatePositions) == 0 {
             c.JSON(http.StatusOK, []interface{}{})
             return
         }
-
-        // Collect OpeningIDs and MoveNumbers from these positions
-        type openingMove struct {
-            OpeningID  uint
-            MoveNumber int
-        }
-        var openingMoves []openingMove
-        for _, pos := range positionsWithSameFen {
-            if pos.OpeningID != 0 {
-                openingMoves = append(openingMoves, openingMove{pos.OpeningID, int(pos.MoveNumber)})
-            }
-        }
-
-        if len(openingMoves) == 0 {
-            c.JSON(http.StatusOK, gin.H{"message": "No openings associated with matched positions"})
-            return
-        }
-
-        // Step 2: For each opening & moveNumber, find positions with same OpeningID and moveNumber + 1
-        var candidatePositions []models.Position
-        query := db.Preload("Opening").Where("0=1") // start with false condition to OR later
-
-        for _, om := range openingMoves {
-            query = query.Or("opening_id = ? AND move_number = ?", om.OpeningID, om.MoveNumber+1)
-        }
-
-        if err := query.Find(&candidatePositions).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
-        }
-			  
-				for i := range candidatePositions {
-					candidatePositions[i].OpeningName = candidatePositions[i].Opening.Name
-				}
 
         c.JSON(http.StatusOK, candidatePositions)
     }

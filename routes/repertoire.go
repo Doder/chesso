@@ -27,7 +27,7 @@ func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
     positions := router.Group("/positions")
 		positions.Use(middleware.AuthMiddleware())
     {
-        positions.POST("/", controllers.CreatePosition(db))
+        positions.POST("/", controllers.CreateOrUpdatePosition(db))
         positions.GET("/search", controllers.FindPositionsByFEN(db))
 				positions.DELETE("/:id", controllers.DeletePosition(db))
 				positions.GET("/search-candidate", controllers.SearchCandidatePositions(db)) // ?fen=xxx}
