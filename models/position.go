@@ -10,7 +10,6 @@ type Position struct {
 
 	FEN string `gorm:"not null" json:"fen"`
 	HashedFEN string `gorm:"not null;uniqueIndex:idx-fen-opening" json:"hashed_fen"` 
-	LastMove string `json:"last_move"`
 	OpeningID uint `gorm:"not null;uniqueIndex:idx-fen-opening" json:"opening_id"` 	
 
 	OpeningName string `json:"opening_name" gorm:"-"`

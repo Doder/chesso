@@ -13,7 +13,6 @@ import (
 type PositionInput struct {
 		FromFEN    string `json:"from_fen" binding:"required"`
 		ToFEN      string `json:"to_fen" binding:"required"`
-		LastMove   string `json:"last_move" binding:"required"`
 		OpeningID  uint   `json:"opening_id" binding:"required"`
 		RepertoireID uint `json:"repertoire_id" binding:"required"`
 }
@@ -44,7 +43,6 @@ func CreateOrUpdatePosition(db *gorm.DB) gin.HandlerFunc {
 					if errors.Is(err, gorm.ErrRecordNotFound) {
 						position = models.Position{
 								FEN:        input.ToFEN,
-								LastMove: input.LastMove,
 								OpeningID:  input.OpeningID,
 								HashedFEN:  hashedFEN,
 						}
@@ -104,13 +102,88 @@ func DeletePosition(db *gorm.DB) gin.HandlerFunc {
 func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
 			  rep_id := c.Query("repertoire_id")
+        to_fen := c.Query("to_fen")
+				from_fen := c.Query("from_fen")
+        if to_fen == "" || rep_id == "" || to_fen == from_fen{
+            c.JSON(http.StatusBadRequest, gin.H{"error": "to_fen, repertoire_id query params are required"})
+            return
+        }
+
+        hashedFromFen := utils.NormalizeHashFEN(from_fen) 
+				hashedToFen := utils.NormalizeHashFEN(to_fen)
+
+        var position1WithSameFen models.Position
+        var position2WithSameFen models.Position
+
+        err1 := db.
+    Joins("JOIN openings ON openings.id = positions.opening_id").
+    Where("positions.hashed_fen = ? AND openings.repertoire_id = ?", hashedFromFen, rep_id).
+    Preload("Opening.Repertoire").
+		Preload("NextPositions").
+    First(&position1WithSameFen).Error
+
+        err2 := db.
+    Joins("JOIN openings ON openings.id = positions.opening_id").
+    Where("positions.hashed_fen = ? AND openings.repertoire_id = ?", hashedToFen, rep_id).
+    Preload("Opening.Repertoire").
+		Preload("NextPositions").
+    First(&position2WithSameFen).Error
+
+				position := models.Position{
+						FEN:        to_fen,
+						OpeningID:  position1WithSameFen.OpeningID,
+						HashedFEN:  hashedToFen,
+				}
+				if err1 != nil && err2 != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err1.Error()})
+						return
+				} else if err1 != nil{
+					if !errors.Is(err1, gorm.ErrRecordNotFound){
+								c.JSON(http.StatusInternalServerError, gin.H{"error": err1.Error()})
+								return
+					}
+				} else if err2 != nil {
+						if errors.Is(err2, gorm.ErrRecordNotFound){
+							//create new positions regularly
+							if err := db.Create(&position).Error; err != nil {
+									c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+									return
+							}
+							if err := db.Model(&position1WithSameFen).Association("NextPositions").Append(&position); err != nil {
+								c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+								return
+							}
+						} else {
+								c.JSON(http.StatusInternalServerError, gin.H{"error": err2.Error()})
+								return
+						}
+				} else if err1 == nil && err2 == nil {
+							//append to to_pos new positions
+							if err := db.Model(&position2WithSameFen).Association("PrevPositions").Append(&position1WithSameFen); err != nil {
+								c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+								return
+							}
+					}
+				candidatePositions := position2WithSameFen.NextPositions 
+				if len(candidatePositions) == 0 {
+						c.JSON(http.StatusOK, []interface{}{})
+						return
+				}
+
+				c.JSON(http.StatusOK, candidatePositions)
+    }
+	}
+	
+func FindPrevMoves(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+			  rep_id := c.Query("repertoire_id")
         fen := c.Query("fen")
         if fen == "" {
             c.JSON(http.StatusBadRequest, gin.H{"error": "fen query param required"})
             return
         }
 
-        hashedFen := utils.NormalizeHashFEN(fen) // Implement this function to hash FEN consistently
+        hashedFen := utils.NormalizeHashFEN(fen) 
 
         var positionWithSameFen models.Position
         if err := db.
@@ -126,7 +199,7 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 							return
         }
-				candidatePositions := positionWithSameFen.NextPositions 
+				candidatePositions := positionWithSameFen.PrevPositions 
         if len(candidatePositions) == 0 {
             c.JSON(http.StatusOK, []interface{}{})
             return
@@ -135,3 +208,4 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
         c.JSON(http.StatusOK, candidatePositions)
     }
 	}
+
