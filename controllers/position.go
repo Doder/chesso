@@ -1,9 +1,11 @@
 package controllers
 
 import (
+		"fmt"
     "net/http"
 		"errors"
 		"strconv"
+		"sort"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -101,6 +103,18 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
 				for _,p := range candidatePositions {
 					p.OpeningName = p.Opening.Name
 				}
+				sort.Slice(candidatePositions, func(i, j int) bool {
+					fmt.Println("aaaa")
+					fmt.Println(candidatePositions[i].OpeningName)
+					fmt.Println(position2WithSameFen.Opening.Name)
+					fmt.Println("aaaa")
+					if candidatePositions[i].OpeningName == position2WithSameFen.Opening.Name {
+						return true
+					} else if candidatePositions[j].OpeningName == position2WithSameFen.Opening.Name {
+						return false
+					}
+					return candidatePositions[i].OpeningName < candidatePositions[j].OpeningName
+				})
 				c.JSON(http.StatusOK, candidatePositions)
     }
 	}
