@@ -30,13 +30,16 @@ services:
     command: ["go", "run", "main.go"]
     
   nginx:
-      image: nginx:alpine
+      build: 
+        context: ./nginx
       container_name: nginx
       ports:
-        - "80:80"
+        - "443:443"
       volumes:
         - ./nginx/nginx.conf:/etc/nginx/nginx.conf
         - ../react-build:/usr/share/nginx/html
+        - ./nginx/certs:/etc/nginx/certs
+      entrypoint: ["/bin/sh", "/etc/nginx/certs/entrypoint.sh"]
       depends_on:
         - api 
 volumes:
