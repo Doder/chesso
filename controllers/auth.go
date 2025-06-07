@@ -28,7 +28,13 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub": user.ID,
+			"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+	tokenString, _ := token.SignedString(jwtKey)
+
+	c.JSON(http.StatusCreated, gin.H{"token": tokenString})
 }
 
 func LoginUser(c *gin.Context) {
