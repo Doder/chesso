@@ -35,7 +35,8 @@ func CreateRepertoire(db *gorm.DB) gin.HandlerFunc {
 func ListRepertoires(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var repertoires []models.Repertoire
-        if err := db.Find(&repertoires).Error; err != nil {
+				userID,_ := c.Get("userID")
+        if err := db.Where("user_id = ?", userID).Find(&repertoires).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
