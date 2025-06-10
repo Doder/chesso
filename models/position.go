@@ -13,6 +13,7 @@ type Position struct {
 	OpeningID uint `gorm:"not null;uniqueIndex:idx-fen-opening" json:"opening_id"` 	
 	Eval string `gorm:"default:'=';check: eval IN ('+', '+=', '=', '-=', '-')" json:"eval"`
 	Comment string `json:"comment"`
+	Order uint `gorm:"default:0" json:"order"`
 
 	OpeningName string `json:"opening_name" gorm:"-"`
 	Opening Opening `gorm:"foreignKey:OpeningID" json:"-"`

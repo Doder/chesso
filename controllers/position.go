@@ -18,9 +18,10 @@ type PositionInput struct {
 		RepertoireID uint `json:"repertoire_id" binding:"required"`
 }
 
-type PositionCommentInput struct {
+type PositionMetaInput struct {
 	Eval         string `json:"eval"`
 	Comment      string `json:"comment"`
+	Order        int    `json:"order"`
 }
 
 func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
@@ -108,7 +109,7 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
 func UpdatePositionMeta(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		var input PositionCommentInput
+		var input PositionMetaInput
 		if err := c.ShouldBindJSON(&input); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
