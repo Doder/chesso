@@ -1,6 +1,7 @@
 package controllers
 
 import (
+		"time"
     "net/http"
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -8,7 +9,10 @@ import (
 )
 
 type RepertoireWithOpenings struct {
-	gorm.Model
+	ID uint
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
 	Name string `json:"name"`
 	Openings []models.Opening `gorm:"foreignKey:RepertoireID" json:"openings"`
 }

@@ -1,12 +1,15 @@
 package models
 
 import (
+	"time"
 	"gorm.io/gorm"
 	"github.com/Doder/chesso/utils"
 )
 
 type Position struct {
-	gorm.Model	
+	ID          uint       `gorm:"primaryKey"`
+  CreatedAt   time.Time
+  UpdatedAt   time.Time
 
 	FEN string `gorm:"not null" json:"fen"`
 	HashedFEN string `gorm:"not null;uniqueIndex:idx-fen-opening" json:"hashed_fen"` 
@@ -16,9 +19,9 @@ type Position struct {
 	Order uint `gorm:"default:0" json:"order"`
 
 	OpeningName string `json:"opening_name" gorm:"-"`
-	Opening Opening `gorm:"foreignKey:OpeningID" json:"-"`
-	PrevPositions []*Position `gorm:"many2many:position_prevposition;joinForeignKey:PositionID;joinReferences:PrevPositionID"`
-	NextPositions []*Position `gorm:"many2many:position_prevposition;joinForeignKey:PrevPositionID;joinReferences:PositionID"`
+	Opening Opening `gorm:"foreignKey:OpeningID;constraint:OnDelete:CASCADE;" json:"-"`
+	PrevPositions []*Position `gorm:"many2many:position_prevposition;joinForeignKey:PositionID;joinReferences:PrevPositionID;constraint:OnDelete:CASCADE;"`
+	NextPositions []*Position `gorm:"many2many:position_prevposition;joinForeignKey:PrevPositionID;joinReferences:PositionID;constraint:OnDelete:CASCADE;"`
 }
 
 func (p *Position) BeforeSave(tx *gorm.DB) (err error) {
