@@ -8,6 +8,11 @@ import (
     "github.com/Doder/chesso/utils"
 )
 
+type OpeningInput struct {
+	Name string `json:"name"`
+	Side string `json:"side"`
+}
+
 func CreateOpening(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var input models.Opening
@@ -40,12 +45,33 @@ func CreateOpening(db *gorm.DB) gin.HandlerFunc {
 func ListOpenings(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var openings []models.Opening
-        if err := db.Find(&openings).Error; err != nil {
+        if err := db.Order("created_at ASC").Find(&openings).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
         c.JSON(http.StatusOK, openings)
     }
+}
+
+func UpdateOpening(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		var input OpeningInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+		}
+		var opening models.Opening
+		if err := db.First(&opening, id).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Model(&opening).Updates(input).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, opening)
+	}
 }
 
 func GetOpening(db *gorm.DB) gin.HandlerFunc {
