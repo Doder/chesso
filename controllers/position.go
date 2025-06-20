@@ -127,3 +127,64 @@ func UpdatePositionMeta(db *gorm.DB) gin.HandlerFunc {
 		return
 	}
 }
+
+func DeletePosition(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		visited := map[uint]bool{}
+		pos_id, err := strconv.ParseUint(id, 10, 0)
+		if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+		}
+		if err := recursiveDelete(db, uint(pos_id), visited); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, nil)
+	}
+}
+
+func recursiveDelete(db *gorm.DB, id uint, visited map[uint]bool) error {
+	if visited[id] {
+		return nil // avoid cycles
+	}
+	visited[id] = true
+
+	// Step 1: Find children (positions this one points to)
+	var children []uint
+	db.
+		Table("position_prevposition").
+		Where("prev_position_id = ?", id).
+		Pluck("position_id", &children)
+
+	for _, childID := range children {
+		// Step 2: Check if any other parent exists for this child
+		var count int64
+		db.
+			Table("position_prevposition").
+			Where("position_id = ? AND prev_position_id != ?", childID, id).
+			Count(&count)
+
+		if count == 0 {
+			// No other parents — delete child recursively
+			if err := recursiveDelete(db, childID, visited); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Step 3: Delete position_relations where this position is involved
+	err := db.
+		Table("position_prevposition").
+		Where("position_id = ? OR prev_position_id = ?", id, id).
+		Delete(nil).Error
+	if err != nil {
+		return err
+	}
+
+	// Step 4: Delete the position itself
+	db.Delete(&models.Position{}, id)
+	return nil
+}
+

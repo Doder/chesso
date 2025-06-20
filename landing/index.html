@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chesso - Chess Opening Repertoire Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <a href="#" class="logo-link">
+                    <img src="logo.svg" alt="Chesso Logo" class="logo-image">
+                    <h1 class="logo">Chesso</h1>
+                </a>
+                <p class="tagline">Master Your Chess Openings</p>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#open-source">Open Source</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a href="https://chesso.org" class="cta-button mobile-hidden">Get Started</a>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h2>Build, Master, and Perfect Your Chess Openings</h2>
+                    <p>Chesso helps chess players of all levels create, organize, and memorize their opening repertoires with powerful training tools.</p>
+                    <div class="cta-buttons">
+                        <a href="https://chesso.org" class="cta-button">Get Started Free</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="slider">
+                        <div class="slider-track">
+                            <div class="slide active">
+                                <img src="chess-interface.png" alt="Chesso app interface showing Queen's Gambit opening">
+                            </div>
+                            <div class="slide">
+                                <img src="chess-interface2.png" alt="Chesso app interface showing second view">
+                            </div>
+                            <div class="slide">
+                                <img src="chess-interface3.png" alt="Chesso app interface showing third view">
+                            </div>
+                        </div>
+                        <div class="slider-nav">
+                            <span class="slider-dot active" data-slide="0"></span>
+                            <span class="slider-dot" data-slide="1"></span>
+                            <span class="slider-dot" data-slide="2"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <div class="container">
+                <h2 class="section-title">Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">♞</div>
+                        <h3>Opening Repertoire Builder</h3>
+                        <p>Create and organize your personalized opening repertoire for both white and black pieces.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">♜</div>
+                        <h3>Interactive Training <span class="badge">Coming Soon</span></h3>
+                        <p>Practice your openings with specialized training modes designed to reinforce your memory.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">♛</div>
+                        <h3>Position Notes</h3>
+                        <p>Add detailed notes and annotations to specific positions to remember key ideas.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">♟</div>
+                        <h3>Progress Tracking <span class="badge">Coming Soon</span></h3>
+                        <p>Monitor your improvement with detailed statistics on your training sessions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works" id="how-it-works">
+            <div class="container">
+                <h2 class="section-title">How It Works</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3>Build Your Repertoire</h3>
+                        <p>Start by inputting your favorite openings or importing PGN files to create your repertoire.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3>Add Notes & Analysis</h3>
+                        <p>Annotate positions with key ideas, tactics, and strategic concepts to remember.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3>Train Regularly</h3>
+                        <p>Use the spaced repetition system to efficiently memorize your openings.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <h3>Perfect Your Play</h3>
+                        <p>Review your training results and focus on problem areas to improve continuously.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="open-source" id="open-source">
+            <div class="container">
+                <h2 class="section-title">Open Source Project</h2>
+                <div class="open-source-content">
+                    <div class="open-source-text">
+                        <h3>Join the Community</h3>
+                        <p>Chesso is an open source project, and we welcome contributions from developers, chess enthusiasts, and players of all levels.</p>
+                        <p>Whether you're a React developer, chess expert, or just passionate about the game, there are many ways to get involved.</p>
+                        <h3>How to Contribute</h3>
+                        <p>You can contribute by submitting bug reports, feature requests, documentation improvements, or code contributions.</p>
+                        
+                        <div class="github-repos">
+                            <a href="https://github.com/Doder/chesso-frontend" class="repo-link" target="_blank">
+                                <div class="repo-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                                </div>
+                                <div class="repo-info">
+                                    <h3>Frontend Repository</h3>
+                                    <p>React-based UI for the chess opening management system</p>
+                                </div>
+                            </a>
+                            <a href="https://github.com/Doder/chesso" class="repo-link" target="_blank">
+                                <div class="repo-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                                </div>
+                                <div class="repo-info">
+                                    <h3>Backend Repository</h3>
+                                    <p>Server-side code and chess engine integration</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-hero" id="about">
+            <div class="container">
+                <h2 class="section-title">About Chesso</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>Chesso is my personal project that I'm building to help myself memorize chess openings more effectively.</p>
+                        <p>As a chess player, I've always struggled with remembering complex opening lines and understanding the strategic ideas behind them. Existing tools were either too complex or too basic for practical training.</p>
+                        <p>That's why I built Chesso - an intuitive, open-source platform that helps me build, manage, and train with my personal chess opening repertoire.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contact-hero" id="contact">
+            <div class="container">
+                <h2 class="section-title">Contact Us</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3>Get in Touch</h3>
+                        <p>Have questions about Chesso? Want to report a bug or suggest a feature? We'd love to hear from you!</p>
+                        
+                        <div class="contact-methods">
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>Email</h4>
+                                    <p><a href="mailto:contact@chesso.org">contact@chesso.org</a></p>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>GitHub Issues</h4>
+                                    <p><a href="https://github.com/Doder/chesso/issues" target="_blank">Submit an issue</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form-container">
+                        <h3>Send us a Message</h3>
+                        <form class="contact-form" id="contact-form">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <select id="subject" name="subject">
+                                    <option value="general">General Inquiry</option>
+                                    <option value="bug">Bug Report</option>
+                                    <option value="feature">Feature Request</option>
+                                    <option value="contribution">Contribution Interest</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" name="message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="cta-button">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2>Ready to Master Your Chess Openings?</h2>
+                <p>Join the growing community of chess players using Chesso to improve their game.</p>
+                <a href="https://chesso.org"  class="cta-button large">Try Chesso Now</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column main-column">
+                    <h3 class="logo-white">Chesso</h3>
+                    <p>The ultimate chess opening repertoire builder and training tool.</p>
+                    <div class="support-link">
+                        <a href="https://www.buymeacoffee.com/doder" target="_blank" rel="noopener noreferrer" class="block"><img alt="Buy Me A Coffee" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" style="height: 35px; width: 132px;"></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4 class="footer-title">Product</h4>
+                        <ul>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#open-source">Open Source</a></li>
+                            <li><a href="#">Updates</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-title">Community</h4>
+                        <ul>
+                            <li><a href="#about">About Us</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 Chesso. Open Source Chess Opening Repertoire Tool.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
