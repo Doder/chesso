@@ -96,13 +96,13 @@ func SearchCandidatePositions(db *gorm.DB) gin.HandlerFunc {
 					}
 				candidatePositions := position2WithSameFen.NextPositions 
 				if len(candidatePositions) == 0 {
-						c.JSON(http.StatusOK, []interface{}{})
+						c.JSON(http.StatusOK, gin.H{"positions": []interface{}{}, "current_position": position2WithSameFen})
 						return
 				}
 				for _,p := range candidatePositions {
 					p.OpeningName = p.Opening.Name
 				}
-				c.JSON(http.StatusOK, candidatePositions)
+				c.JSON(http.StatusOK, gin.H{"positions": candidatePositions, "current_position": position2WithSameFen})
     }
 	}
 
