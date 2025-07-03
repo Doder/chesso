@@ -53,6 +53,11 @@ func LoginUser(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
+	// Update last_logged_in
+	now := time.Now()
+	user.LastLoggedIn = &now
+	db.DB.Save(&user)
+
 	// Create JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"sub": user.ID,
