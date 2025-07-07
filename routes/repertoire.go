@@ -31,7 +31,10 @@ func RegisterRepertoirRoutes(router *gin.Engine, db *gorm.DB) {
     {
 				positions.GET("/search-candidate", controllers.SearchCandidatePositions(db)) 
 				positions.GET("/by-openings", controllers.GetPositionsByOpeningIds(db))
+				positions.GET("/counts-by-openings", controllers.GetPositionCountsByOpeningIds(db))
 				positions.PATCH("/:id", controllers.UpdatePositionMeta(db))
+				positions.POST("/:id/correct", controllers.UpdatePositionCorrectGuess(db))
+				positions.POST("/:id/incorrect", controllers.ResetPositionProgress(db))
 				positions.DELETE("/:id", controllers.DeletePosition(db))
 		}
 }

@@ -17,6 +17,10 @@ type Position struct {
 	Eval string `gorm:"default:'=';check: eval IN ('+', '+=', '=', '-=', '-')" json:"eval"`
 	Comment string `json:"comment"`
 	Order uint `gorm:"default:0" json:"order"`
+	
+	// Spaced repetition fields
+	LastCorrectGuess *time.Time `json:"last_correct_guess"`
+	RepetitionCount uint `gorm:"default:0" json:"repetition_count"`
 
 	OpeningName string `json:"opening_name" gorm:"-"`
 	Opening Opening `gorm:"foreignKey:OpeningID;constraint:OnDelete:CASCADE;" json:"-"`

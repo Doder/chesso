@@ -5,6 +5,7 @@ import (
 		"errors"
 		"strconv"
 		"strings"
+		"time"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -189,6 +190,37 @@ func recursiveDelete(db *gorm.DB, id uint, visited map[uint]bool) error {
 	return nil
 }
 
+// Helper function to get active color from FEN notation
+func getActiveColorFromFEN(fen string) string {
+	parts := strings.Split(fen, " ")
+	if len(parts) >= 2 {
+		return parts[1] // "w" for white, "b" for black
+	}
+	return "w" // Default to white if FEN is malformed
+}
+
+// Helper function to calculate spaced repetition schedule
+func getSpacedRepetitionIntervals() []int {
+	return []int{1, 2, 4, 8, 15, 30} // Days for each repetition level
+}
+
+// Helper function to check if position is due for review
+func isPositionDue(lastCorrectGuess *time.Time, repetitionCount uint) bool {
+	if lastCorrectGuess == nil {
+		return true // Never practiced, always due
+	}
+	
+	intervals := getSpacedRepetitionIntervals()
+	if int(repetitionCount) >= len(intervals) {
+		return false // Max repetitions reached
+	}
+	
+	daysSinceLastCorrect := int(time.Since(*lastCorrectGuess).Hours() / 24)
+	requiredInterval := intervals[repetitionCount]
+	
+	return daysSinceLastCorrect >= requiredInterval
+}
+
 func GetPositionsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		openingIds := c.Query("opening_ids")
@@ -228,14 +260,140 @@ func GetPositionsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Add opening name to each position for frontend convenience
-		for i := range positions {
-			if positions[i].Opening.Name != "" {
-				positions[i].OpeningName = positions[i].Opening.Name
+		// Filter positions based on spaced repetition schedule, side, and trainability
+		var duePositions []models.Position
+		for _, position := range positions {
+			if isPositionDue(position.LastCorrectGuess, position.RepetitionCount) {
+				// Check if the active player in the position matches the opening side
+				activeColor := getActiveColorFromFEN(position.FEN)
+				openingSide := position.Opening.Side
+				
+				// Only include position if active color matches opening side AND has next moves to train on
+				if activeColor == openingSide && len(position.NextPositions) > 0 {
+					duePositions = append(duePositions, position)
+				}
 			}
 		}
 
-		c.JSON(http.StatusOK, positions)
+		// Add opening name to each position for frontend convenience
+		for i := range duePositions {
+			if duePositions[i].Opening.Name != "" {
+				duePositions[i].OpeningName = duePositions[i].Opening.Name
+			}
+		}
+
+		c.JSON(http.StatusOK, duePositions)
+	}
+}
+
+// Update position when user makes correct guess
+func UpdatePositionCorrectGuess(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		
+		var position models.Position
+		if err := db.First(&position, id).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Position not found"})
+			return
+		}
+
+		now := time.Now()
+		position.LastCorrectGuess = &now
+		position.RepetitionCount++
+
+		if err := db.Save(&position).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, position)
+	}
+}
+
+// Reset position when user makes incorrect guess
+func ResetPositionProgress(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		
+		var position models.Position
+		if err := db.First(&position, id).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Position not found"})
+			return
+		}
+
+		position.LastCorrectGuess = nil
+		position.RepetitionCount = 0
+
+		if err := db.Save(&position).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, position)
+	}
+}
+
+// Get position counts for training (for displaying in UI)
+func GetPositionCountsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		openingIds := c.Query("opening_ids")
+		if openingIds == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "opening_ids query parameter is required"})
+			return
+		}
+
+		// Parse comma-separated opening IDs
+		idStrings := strings.Split(openingIds, ",")
+		var ids []uint
+		for _, idStr := range idStrings {
+			if idStr != "" {
+				id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 0)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid opening ID: " + idStr})
+					return
+				}
+				ids = append(ids, uint(id))
+			}
+		}
+
+		if len(ids) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No valid opening IDs provided"})
+			return
+		}
+
+		// Get all positions for the requested openings
+		var positions []models.Position
+		err := db.
+			Where("opening_id IN (?)", ids).
+			Preload("Opening").
+			Preload("NextPositions").
+			Find(&positions).Error
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Count positions per opening using the same filtering logic as GetPositionsByOpeningIds
+		counts := make(map[uint]int)
+		for _, id := range ids {
+			counts[id] = 0 // Initialize all counts to 0
+		}
+
+		for _, position := range positions {
+			if isPositionDue(position.LastCorrectGuess, position.RepetitionCount) {
+				// Check if the active player in the position matches the opening side
+				activeColor := getActiveColorFromFEN(position.FEN)
+				openingSide := position.Opening.Side
+				
+				// Only count position if active color matches opening side AND has next moves to train on
+				if activeColor == openingSide && len(position.NextPositions) > 0 {
+					counts[position.OpeningID]++
+				}
+			}
+		}
+
+		c.JSON(http.StatusOK, counts)
 	}
 }
 
