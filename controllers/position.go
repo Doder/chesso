@@ -221,6 +221,20 @@ func isPositionDue(lastCorrectGuess *time.Time, repetitionCount uint) bool {
 	return daysSinceLastCorrect >= requiredInterval
 }
 
+// Get days until next review for a position
+func getDaysUntilNextReview(lastCorrectGuess *time.Time, repetitionCount uint) int {
+	if lastCorrectGuess == nil {
+		return 0 // Never practiced, due now
+	}
+	intervals := getSpacedRepetitionIntervals()
+	if int(repetitionCount) >= len(intervals) {
+		return -1 // Max repetitions reached
+	}
+	daysSinceLastCorrect := int(time.Since(*lastCorrectGuess).Hours() / 24)
+	requiredInterval := intervals[repetitionCount]
+	return requiredInterval - daysSinceLastCorrect
+}
+
 func GetPositionsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		openingIds := c.Query("opening_ids")
@@ -374,26 +388,38 @@ func GetPositionCountsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Count positions per opening using the same filtering logic as GetPositionsByOpeningIds
+		// Count positions per opening and track next review dates
 		counts := make(map[uint]int)
+		nextReviewDays := make(map[uint]int)
 		for _, id := range ids {
-			counts[id] = 0 // Initialize all counts to 0
+			counts[id] = 0
+			nextReviewDays[id] = -1 // -1 means no positions found
 		}
 
 		for _, position := range positions {
-			if isPositionDue(position.LastCorrectGuess, position.RepetitionCount) {
-				// Check if the active player in the position matches the opening side
-				activeColor := getActiveColorFromFEN(position.FEN)
-				openingSide := position.Opening.Side
-				
-				// Only count position if active color matches opening side AND has next moves to train on
-				if activeColor == openingSide && len(position.NextPositions) > 0 {
+			activeColor := getActiveColorFromFEN(position.FEN)
+			openingSide := position.Opening.Side
+			
+			// Only consider positions that match opening side AND have next moves
+			if activeColor == openingSide && len(position.NextPositions) > 0 {
+				if isPositionDue(position.LastCorrectGuess, position.RepetitionCount) {
 					counts[position.OpeningID]++
+				} else {
+					// Track minimum days until next review for this opening
+					days := getDaysUntilNextReview(position.LastCorrectGuess, position.RepetitionCount)
+					if days > 0 && (nextReviewDays[position.OpeningID] == -1 || days < nextReviewDays[position.OpeningID]) {
+						nextReviewDays[position.OpeningID] = days
+					}
 				}
 			}
 		}
 
-		c.JSON(http.StatusOK, counts)
+		response := gin.H{
+			"counts": counts,
+			"nextReviewDays": nextReviewDays,
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 
