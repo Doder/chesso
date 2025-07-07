@@ -44,8 +44,18 @@ func CreateOpening(db *gorm.DB) gin.HandlerFunc {
 
 func ListOpenings(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
+        userID, exists := c.Get("userID")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+            return
+        }
+
         var openings []models.Opening
-        if err := db.Order("created_at ASC").Find(&openings).Error; err != nil {
+        if err := db.
+            Joins("JOIN repertoires ON repertoires.id = openings.repertoire_id").
+            Where("repertoires.user_id = ?", userID).
+            Order("openings.created_at ASC").
+            Find(&openings).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
