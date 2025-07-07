@@ -4,6 +4,7 @@ import (
     "net/http"
 		"errors"
 		"strconv"
+		"strings"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -186,5 +187,55 @@ func recursiveDelete(db *gorm.DB, id uint, visited map[uint]bool) error {
 	// Step 4: Delete the position itself
 	db.Delete(&models.Position{}, id)
 	return nil
+}
+
+func GetPositionsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		openingIds := c.Query("opening_ids")
+		if openingIds == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "opening_ids query parameter is required"})
+			return
+		}
+
+		// Parse comma-separated opening IDs
+		idStrings := strings.Split(openingIds, ",")
+		var ids []uint
+		for _, idStr := range idStrings {
+			if idStr != "" {
+				id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 0)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid opening ID: " + idStr})
+					return
+				}
+				ids = append(ids, uint(id))
+			}
+		}
+
+		if len(ids) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No valid opening IDs provided"})
+			return
+		}
+
+		var positions []models.Position
+		err := db.
+			Where("opening_id IN (?)", ids).
+			Preload("Opening").
+			Preload("NextPositions").
+			Find(&positions).Error
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Add opening name to each position for frontend convenience
+		for i := range positions {
+			if positions[i].Opening.Name != "" {
+				positions[i].OpeningName = positions[i].Opening.Name
+			}
+		}
+
+		c.JSON(http.StatusOK, positions)
+	}
 }
 
