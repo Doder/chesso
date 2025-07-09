@@ -6,6 +6,7 @@ import (
     "github.com/Doder/chesso/models"
     "github.com/Doder/chesso/middleware"
     "github.com/Doder/chesso/controllers"
+    "github.com/Doder/chesso/services"
 
     "net/http"
 )
@@ -23,5 +24,12 @@ func RegisterUserRoutes(r *gin.Engine) {
 		r.POST("/auth/reset-password", controllers.ResetPassword)
 
     r.GET("/me", middleware.AuthMiddleware(), controllers.GetCurrentUser)
+    
+    // Test endpoint for training reminders (for development/testing)
+    r.POST("/test-training-reminder", middleware.AuthMiddleware(), func(c *gin.Context) {
+        worker := services.NewTrainingWorker()
+        worker.TestTrainingReminder()
+        c.JSON(http.StatusOK, gin.H{"message": "Training reminder test triggered"})
+    })
 }
 
