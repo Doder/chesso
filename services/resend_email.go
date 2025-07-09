@@ -8,15 +8,15 @@ import (
 )
 
 type TrainingReminderData struct {
-	Username string
-	Openings []OpeningTrainingData
+	Username       string
+	Openings       []OpeningTrainingData
 	TotalPositions int
 }
 
 type OpeningTrainingData struct {
-	Name           string
-	Side           string
-	PositionCount  int
+	Name          string
+	Side          string
+	PositionCount int
 }
 
 func SendTrainingReminderEmail(to string, data TrainingReminderData) error {
@@ -44,18 +44,15 @@ func SendTrainingReminderEmail(to string, data TrainingReminderData) error {
 	// Generate opening list HTML
 	openingListHTML := ""
 	for _, opening := range data.Openings {
-		sideIcon := "♔" // White king
 		sideName := "White"
 		if opening.Side == "b" {
-			sideIcon = "♚" // Black king
 			sideName = "Black"
 		}
-		
+
 		openingListHTML += fmt.Sprintf(`
 			<tr>
 				<td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
 					<div style="display: flex; align-items: center; gap: 8px;">
-						<span style="font-size: 18px;">%s</span>
 						<span style="font-weight: 500;">%s</span>
 					</div>
 				</td>
@@ -68,7 +65,7 @@ func SendTrainingReminderEmail(to string, data TrainingReminderData) error {
 					<span style="font-weight: 600; color: #059669;">%d positions</span>
 				</td>
 			</tr>`,
-			sideIcon, opening.Name,
+			opening.Name,
 			map[string]string{"b": "#1f2937", "w": "#f3f4f6"}[opening.Side],
 			map[string]string{"b": "white", "w": "#1f2937"}[opening.Side],
 			sideName, opening.PositionCount)
@@ -104,8 +101,16 @@ func SendTrainingReminderEmail(to string, data TrainingReminderData) error {
             padding: 40px 20px; 
         }
         .chess-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 48px;
             margin-bottom: 16px;
+        }
+        .chess-icon img {
+            height: 48px;
+            width: 48px;
+            margin-right: 12px;
         }
         .content { 
             padding: 32px; 
@@ -180,7 +185,7 @@ func SendTrainingReminderEmail(to string, data TrainingReminderData) error {
 <body>
     <div class="container">
         <div class="header">
-            <div class="chess-icon">♔♕♖♗♘♙</div>
+            <h1 class="logo">Chesso</h1>
             <h1>Time for Chess Training!</h1>
             <p>Your positions are ready for review</p>
         </div>
