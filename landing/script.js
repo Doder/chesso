@@ -1,45 +1,106 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const heroSlider = document.querySelector('.slider');
-    if (heroSlider) {
-        const slides = heroSlider.querySelectorAll('.slide');
-        const dots = heroSlider.querySelectorAll('.slider-dot');
+    // Slider functionality
+    const slider = document.querySelector('.slider');
+    if (slider) {
+        const slides = slider.querySelectorAll('.slide');
+        const dots = slider.querySelectorAll('.slider-dot');
+        const prevArrow = slider.querySelector('.slider-arrow.prev');
+        const nextArrow = slider.querySelector('.slider-arrow.next');
         let currentSlide = 0;
         let slideInterval;
+        let isTransitioning = false;
 
-        function goToSlide(index) {
+        function showSlide(index) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            
+            // Ensure index is within bounds
             if (index >= slides.length) index = 0;
             if (index < 0) index = slides.length - 1;
             
-            slides[currentSlide].classList.remove('active');
-            dots[currentSlide].classList.remove('active');
+            // Remove active classes
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Add active classes
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
             
             currentSlide = index;
             
-            slides[currentSlide].classList.add('active');
-            dots[currentSlide].classList.add('active');
+            // Allow transitions after animation completes (matches CSS transition)
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 800);
         }
 
         function nextSlide() {
-            goToSlide(currentSlide + 1);
+            if (isTransitioning) return;
+            showSlide(currentSlide + 1);
         }
 
-        function startSlider() {
-            slideInterval = setInterval(nextSlide, 2500);
+        function prevSlide() {
+            if (isTransitioning) return;
+            showSlide(currentSlide - 1);
         }
 
-        function pauseSlider() {
-            clearInterval(slideInterval);
+        function startAutoplay() {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+            }
+            slideInterval = setInterval(() => {
+                if (!isTransitioning) {
+                    nextSlide();
+                }
+            }, 6000);
         }
 
+        function stopAutoplay() {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+                slideInterval = null;
+            }
+        }
+
+        // Arrow navigation
+        if (nextArrow) {
+            nextArrow.addEventListener('click', () => {
+                stopAutoplay();
+                nextSlide();
+                setTimeout(startAutoplay, 1000);
+            });
+        }
+
+        if (prevArrow) {
+            prevArrow.addEventListener('click', () => {
+                stopAutoplay();
+                prevSlide();
+                setTimeout(startAutoplay, 1000);
+            });
+        }
+
+        // Dot navigation
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
-                pauseSlider();
-                goToSlide(index);
-                startSlider();
+                if (index !== currentSlide) {
+                    stopAutoplay();
+                    showSlide(index);
+                    setTimeout(startAutoplay, 1000);
+                }
             });
         });
 
-        startSlider();
+        // Pause on hover
+        slider.addEventListener('mouseenter', stopAutoplay);
+        slider.addEventListener('mouseleave', () => {
+            if (!slideInterval) {
+                startAutoplay();
+            }
+        });
+
+        // Initialize
+        showSlide(0);
+        startAutoplay();
     }
     
     const hamburger = document.querySelector('.hamburger');
