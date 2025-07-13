@@ -61,6 +61,7 @@ func LoginUser(c *gin.Context) {
 	// Update last_logged_in
 	now := time.Now()
 	user.LastLoggedIn = &now
+	user.LoginCount += 1
 	db.DB.Save(&user)
 
 	// Create JWT token
@@ -110,7 +111,7 @@ func sendResetEmail(to, token string) error {
 		fmt.Printf("========================\n\n")
 		return nil
 	}
-	
+
 	return nil
 }
 
