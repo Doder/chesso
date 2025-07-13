@@ -122,8 +122,18 @@ ul {
     transition: background-color 0.3s;
 }
 
+.cta-button.signup-button {
+    background-color: var(--accent-color);
+}
+
+.cta-button.signup-button:hover {
+    background-color: var(--accent-color);
+    opacity: .8;
+}
+
 .cta-button:hover {
     background-color: var(--secondary-color);
+    opacity: .8;
 }
 
 .cta-button.secondary {
