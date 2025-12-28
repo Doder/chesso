@@ -267,6 +267,7 @@ func GetPositionsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
 			Where("opening_id IN (?)", ids).
 			Preload("Opening").
 			Preload("NextPositions", "opening_id IN (?)", ids).
+			Preload("PrevPositions").
 			Find(&positions).Error
 
 		if err != nil {
@@ -381,6 +382,7 @@ func GetPositionCountsByOpeningIds(db *gorm.DB) gin.HandlerFunc {
 			Where("opening_id IN (?)", ids).
 			Preload("Opening").
 			Preload("NextPositions", "opening_id IN (?)", ids).
+			Preload("PrevPositions").
 			Find(&positions).Error
 
 		if err != nil {

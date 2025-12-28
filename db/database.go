@@ -3,6 +3,7 @@ package db
 import (
     "fmt"
     "os"
+    "time"
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
 )
@@ -23,6 +24,21 @@ func Connect() {
     if err != nil {
         panic("Failed to connect to database: " + err.Error())
     }
+
+    // Configure connection pool
+    sqlDB, err := database.DB()
+    if err != nil {
+        panic("Failed to get database instance: " + err.Error())
+    }
+
+    // SetMaxIdleConns sets the maximum number of connections in the idle connection pool
+    sqlDB.SetMaxIdleConns(10)
+
+    // SetMaxOpenConns sets the maximum number of open connections to the database
+    sqlDB.SetMaxOpenConns(100)
+
+    // SetConnMaxLifetime sets the maximum amount of time a connection may be reused
+    sqlDB.SetConnMaxLifetime(time.Hour)
 
     DB = database
 }
